@@ -1,7 +1,99 @@
 import { ArrowDown, ArrowLeft, ArrowRight, Upload } from "lucide-react";
+import { useEffect } from "react";
 import { Link } from "react-router";
+import api from "../api/axios";
 
 function Skill() {
+  const roles: { [key: string]: string } = {
+    SoftwareEngineer: "Software Engineer",
+    ProductManager: "Product Manager",
+    Designer: "Designer",
+    QAEngineer: "QA Engineer",
+  };
+
+  const roleToSkillsKey: { [key: string]: keyof typeof skills } = {
+    SoftwareEngineer: "softwareEngineer",
+    "Software Engineer": "softwareEngineer",
+    ProductManager: "productManager",
+    "Product Manager": "productManager",
+    Designer: "designer",
+    QAEngineer: "qaEngineer",
+    "QA Engineer": "qaEngineer",
+  };
+
+  const skills = {
+    softwareEngineer: [
+      "React",
+      "TypeScript",
+      "Node.js",
+      "NestJS",
+      "PostgreSQL",
+      "REST APIs",
+      "Testing",
+      "Docker",
+    ],
+    productManager: [
+      "Roadmap Planning",
+      "Stakeholder Management",
+      "User Research",
+      "Data Analysis",
+      "Agile Methodologies",
+      "Product Strategy",
+      "Market Analysis",
+      "Cross-functional Collaboration",
+    ],
+    designer: [
+      "UI/UX Design",
+      "Figma",
+      "Adobe Creative Suite",
+      "Prototyping",
+      "Design Systems",
+      "User Research",
+      "Typography",
+      "Color Theory",
+    ],
+    qaEngineer: [
+      "Test Automation",
+      "Selenium",
+      "Jest",
+      "Cypress",
+      "Postman",
+      "Performance Testing",
+      "Security Testing",
+      "Bug Tracking",
+    ],
+  };
+
+  const storedRole = localStorage.getItem("role") ?? "";
+  const selectedSkills = roleToSkillsKey[storedRole]
+    ? skills[roleToSkillsKey[storedRole]]
+    : [];
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const personalId = localStorage.getItem("personalId");
+      if (!personalId) {
+        return;
+      }
+      try {
+        const response = await api.get(`/personal/${personalId}`);
+        console.log("Fetched personal data:", response.data);
+        if (response.status >= 200 && response.status < 300) {
+          const { role } = response.data;
+          if (response.data?._id) {
+            localStorage.setItem("personalId", response.data._id);
+          }
+          if (role && roles[role]) {
+            localStorage.setItem("role", roles[role]);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching personal data:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
   return (
     <section className="mx-auto w-full max-w-4xl px-4 md:px-6">
       <div className="card border border-base-300 bg-base-200 shadow-xl">
@@ -26,8 +118,12 @@ function Skill() {
                 <span className="mb-4 rounded-full bg-base-300 p-3">
                   <Upload size={20} />
                 </span>
-                <span className="text-xl font-semibold">Click to upload photo</span>
-                <span className="text-base-content/70">JPG or PNG · max 3 MB</span>
+                <span className="text-xl font-semibold">
+                  Click to upload photo
+                </span>
+                <span className="text-base-content/70">
+                  JPG or PNG · max 3 MB
+                </span>
               </label>
               <input id="profilePhoto" type="file" className="hidden" />
             </div>
@@ -37,38 +133,34 @@ function Skill() {
                 <span className="font-semibold">
                   Skills <span className="text-error">*</span>
                 </span>
-                <span className="text-base-content/70">- select at least 2</span>
+                <span className="text-base-content/70">
+                  - select at least 2
+                </span>
               </div>
 
               <div className="mb-4">
-                <span className="badge badge-soft badge-primary badge-lg">Developer</span>
+                <span className="badge badge-soft badge-primary badge-lg">
+                  {storedRole || "No role selected"}
+                </span>
               </div>
 
               <div className="flex flex-wrap gap-3">
-                <button type="button" className="btn btn-outline rounded-full">
-                  React
-                </button>
-                <button type="button" className="btn btn-outline rounded-full">
-                  TypeScript
-                </button>
-                <button type="button" className="btn btn-outline rounded-full">
-                  Node.js
-                </button>
-                <button type="button" className="btn btn-outline rounded-full">
-                  NestJS
-                </button>
-                <button type="button" className="btn btn-outline rounded-full">
-                  PostgreSQL
-                </button>
-                <button type="button" className="btn btn-outline rounded-full">
-                  REST APIs
-                </button>
-                <button type="button" className="btn btn-outline rounded-full">
-                  Testing
-                </button>
-                <button type="button" className="btn btn-outline rounded-full">
-                  Docker
-                </button>
+                {selectedSkills.length > 0 ? (
+                  selectedSkills.map((skill) => (
+                    <button
+                      key={skill}
+                      type="button"
+                      className="btn btn-outline rounded-full"
+                    >
+                      {skill}
+                    </button>
+                  ))
+                ) : (
+                  <p className="text-base-content/70">
+                    No skills available. Please select a role in the personal
+                    information step.
+                  </p>
+                )}
               </div>
 
               <p className="mt-3 text-base-content/70">0 selected</p>
@@ -79,7 +171,6 @@ function Skill() {
                 <ArrowLeft size={18} />
                 Back
               </Link>
-              
 
               <button type="button" className="btn btn-outline px-7">
                 Next
@@ -88,7 +179,10 @@ function Skill() {
             </div>
 
             <div className="flex justify-center">
-              <button type="button" className="btn btn-circle btn-ghost border border-base-300">
+              <button
+                type="button"
+                className="btn btn-circle btn-ghost border border-base-300"
+              >
                 <ArrowDown size={20} />
               </button>
             </div>
